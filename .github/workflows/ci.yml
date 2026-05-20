@@ -9,7 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -23,3 +22,28 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Scaleway Registry
+        run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud/namespace-bateau -u nologin --password-stdin
+
+      - name: Build image
+        run: docker build -t rg.fr-par.scw.cloud/namespace-bateau/marie:${{ github.sha }} .
+
+      - name: Push image
+        run: docker push rg.fr-par.scw.cloud/namespace-bateau/marie:${{ github.sha }}
+
+      - name: Deploy to Scaleway
+        run: |
+          curl -s -X PATCH \
+            -H "X-Auth-Token: ${{ secrets.SCW_SECRET_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"registry_image\": \"rg.fr-par.scw.cloud/namespace-bateau/marie:${{ github.sha }}\"}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/fr-par/containers/${{ secrets.SCW_CONTAINER_ID }}"
