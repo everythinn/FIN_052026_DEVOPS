@@ -5,3 +5,5 @@ environments = []
 
 groups = []
 next_group_id = 1
+
+features = []
