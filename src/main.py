@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.routers import users, environments
+from src.routers import groups, users, environments
 
 app = FastAPI()
 
@@ -13,3 +13,4 @@ def version():
 
 app.include_router(users.router)
 app.include_router(environments.router)
+app.include_router(groups.router)
