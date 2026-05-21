@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from src.models.feature import FeatureCreate, FeatureUpdate, Feature
+from src.services.feature_evaluator import evaluate_feature_access
 import src.storage as storage
 
 router = APIRouter(prefix="/api/features", tags=["features"])
@@ -107,3 +108,41 @@ def delete_env_config(key: str, env: str):
             del f["env_configs"][env]
             return
     raise HTTPException(status_code=404, detail="Feature not found")
+
+@router.get("/{key}/evaluate", status_code=200)
+def evaluate_feature(key: str, userId: int, env: str):
+    # 1. Trouver la feature
+    feature = None
+    for f in storage.features:
+        if f["key"] == key:
+            feature = f
+            break
+    if feature is None:
+        raise HTTPException(status_code=404, detail="Feature not found")
+
+    # 2. Trouver l'utilisateur
+    user = None
+    for u in storage.users:
+        if u["id"] == userId:
+            user = u
+            break
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 3. Récupérer la config de l'environnement
+    config = feature.get("env_configs", {}).get(env, None)
+
+    # 4. Récupérer les groupes de l'utilisateur
+    user_groups = []
+    for g in storage.groups:
+        if userId in g["user_ids"]:
+            user_groups.append(g["name"])
+
+    # 5. Évaluer
+    result = evaluate_feature_access(feature, config, user, user_groups)
+
+    return {
+        "feature": key,
+        "enabled": result["enabled"],
+        "reason": result["reason"]
+    }
