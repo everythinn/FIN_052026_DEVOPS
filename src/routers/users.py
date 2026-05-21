@@ -11,7 +11,7 @@ def create_user(user: UserCreate):
     for u in storage.users:
         if u["email"] == user.email:
             raise HTTPException(status_code=409, detail="Email already exists")
-    
+
     new_user = {
         "id": storage.next_user_id,
         "email": user.email,
@@ -41,7 +41,9 @@ def update_user(user_id: int, user: UserUpdate):
                 # Vérifier si le nouvel email existe déjà
                 for other in storage.users:
                     if other["email"] == user.email and other["id"] != user_id:
-                        raise HTTPException(status_code=409, detail="Email already exists")
+                        raise HTTPException(
+                            status_code=409, detail="Email already exists"
+                            )
                 u["email"] = user.email
             if user.name is not None:
                 u["name"] = user.name

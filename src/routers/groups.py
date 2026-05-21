@@ -9,7 +9,7 @@ def create_group(group: GroupCreate):
     for g in storage.groups:
         if g["name"] == group.name:
             raise HTTPException(status_code=409, detail="Group already exists")
-    
+
     new_group = {
         "id": storage.next_group_id,
         "name": group.name,
@@ -38,7 +38,9 @@ def update_group(group_id: int, group: GroupUpdate):
             if group.name is not None:
                 for other in storage.groups:
                     if other["name"] == group.name and other["id"] != group_id:
-                        raise HTTPException(status_code=409, detail="Group name already exists")
+                        raise HTTPException(
+                            status_code=409, detail="Group name already exists"
+                            )
                 g["name"] = group.name
             if group.description is not None:
                 g["description"] = group.description

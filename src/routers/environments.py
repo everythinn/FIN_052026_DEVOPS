@@ -9,7 +9,7 @@ def create_environment(env: EnvironmentCreate):
     for e in storage.environments:
         if e["name"] == env.name:
             raise HTTPException(status_code=409, detail="Environment already exists")
-    
+
     new_env = {
         "name": env.name,
         "description": env.description
