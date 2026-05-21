@@ -54,3 +54,31 @@ def test_delete_user():
 def test_delete_user_not_found():
     response = client.delete("/api/users/999")
     assert response.status_code == 404
+
+def test_update_user_not_found():
+    response = client.patch("/api/users/999", json={"name": "Ghost"})
+    assert response.status_code == 404
+
+def test_update_user_duplicate_email():
+    client.post("/api/users", json={"email": "alice@example.com", "name": "Alice", "role": "user"})
+    client.post("/api/users", json={"email": "bob@example.com", "name": "Bob", "role": "user"})
+    response = client.patch("/api/users/2", json={"email": "alice@example.com"})
+    assert response.status_code == 409
+
+def test_update_user_name_only():
+    client.post("/api/users", json={"email": "alice@example.com", "name": "Alice", "role": "user"})
+    response = client.patch("/api/users/1", json={"name": "Alice Updated"})
+    assert response.status_code == 200
+    assert response.json()["name"] == "Alice Updated"
+
+def test_update_user_role_only():
+    client.post("/api/users", json={"email": "alice@example.com", "name": "Alice", "role": "user"})
+    response = client.patch("/api/users/1", json={"role": "admin"})
+    assert response.status_code == 200
+    assert response.json()["role"] == "admin"
+
+def test_update_user_email_unique():
+    client.post("/api/users", json={"email": "alice@example.com", "name": "Alice", "role": "user"})
+    response = client.patch("/api/users/1", json={"email": "newalice@example.com"})
+    assert response.status_code == 200
+    assert response.json()["email"] == "newalice@example.com"

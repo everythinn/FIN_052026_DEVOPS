@@ -50,3 +50,7 @@ def test_delete_environment():
 def test_delete_environment_not_found():
     response = client.delete("/api/environments/unknown")
     assert response.status_code == 404
+
+def test_update_environment_not_found():
+    response = client.patch("/api/environments/unknown", json={"description": "Ghost"})
+    assert response.status_code == 404

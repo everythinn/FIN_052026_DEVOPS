@@ -108,3 +108,53 @@ def test_delete_env_config():
     })
     response = client.delete("/api/features/new-dashboard/environments/prod/config")
     assert response.status_code == 204
+
+def test_update_feature_not_found():
+    response = client.patch("/api/features/unknown", json={"name": "Ghost"})
+    assert response.status_code == 404
+
+def test_delete_feature_not_found():
+    response = client.delete("/api/features/unknown")
+    assert response.status_code == 404
+
+def test_enable_feature_not_found():
+    response = client.patch("/api/features/unknown/enable")
+    assert response.status_code == 404
+
+def test_disable_feature_not_found():
+    response = client.patch("/api/features/unknown/disable")
+    assert response.status_code == 404
+
+def test_set_env_config_feature_not_found():
+    client.post("/api/environments", json={"name": "prod"})
+    response = client.put("/api/features/unknown/environments/prod/config", json={"enabled": True})
+    assert response.status_code == 404
+
+def test_set_env_config_env_not_found():
+    client.post("/api/features", json={"key": "new-dashboard", "name": "Dashboard"})
+    response = client.put("/api/features/new-dashboard/environments/unknown/config", json={"enabled": True})
+    assert response.status_code == 404
+
+def test_get_env_config_not_found():
+    client.post("/api/features", json={"key": "new-dashboard", "name": "Dashboard"})
+    response = client.get("/api/features/new-dashboard/environments/prod/config")
+    assert response.status_code == 404
+
+def test_get_env_config_feature_not_found():
+    response = client.get("/api/features/unknown/environments/prod/config")
+    assert response.status_code == 404
+
+def test_delete_env_config_not_found():
+    client.post("/api/features", json={"key": "new-dashboard", "name": "Dashboard"})
+    response = client.delete("/api/features/new-dashboard/environments/prod/config")
+    assert response.status_code == 404
+
+def test_delete_env_config_feature_not_found():
+    response = client.delete("/api/features/unknown/environments/prod/config")
+    assert response.status_code == 404
+
+def test_update_feature_description_only():
+    client.post("/api/features", json={"key": "new-dashboard", "name": "Dashboard"})
+    response = client.patch("/api/features/new-dashboard", json={"description": "Updated"})
+    assert response.status_code == 200
+    assert response.json()["description"] == "Updated"
